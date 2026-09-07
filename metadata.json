@@ -1,0 +1,6 @@
+{
+  "name": "SD Bina Nusa — Official School Website & SPMB System",
+  "description": "Website Resmi SD Bina Nusa dan Sistem Informasi Penerimaan Murid Baru (SPMB) Tahun Pelajaran 2027/2028",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
