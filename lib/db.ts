@@ -40,270 +40,15 @@ const DEFAULT_SETTINGS: SystemSettings = {
   is_announcement_published: true,
 };
 
-const DEFAULT_ROOMS: Room[] = [
-  {
-    id: 'room-1a',
-    name: 'Kelas 1A',
-    capacity: 25,
-    is_active: true,
-    created_at: '2026-08-01T08:00:00.000Z',
-    updated_at: '2026-08-01T08:00:00.000Z',
-  },
-  {
-    id: 'room-1b',
-    name: 'Kelas 1B',
-    capacity: 25,
-    is_active: true,
-    created_at: '2026-08-01T08:00:00.000Z',
-    updated_at: '2026-08-01T08:00:00.000Z',
-  },
-  {
-    id: 'room-1c',
-    name: 'Kelas 1C',
-    capacity: 25,
-    is_active: true,
-    created_at: '2026-08-01T08:00:00.000Z',
-    updated_at: '2026-08-01T08:00:00.000Z',
-  },
-  {
-    id: 'room-aula',
-    name: 'Gedung Aula Serbaguna',
-    capacity: 50,
-    is_active: true,
-    created_at: '2026-08-01T08:00:00.000Z',
-    updated_at: '2026-08-01T08:00:00.000Z',
-  },
-  {
-    id: 'room-lab',
-    name: 'Lab Bahasa & Komputer',
-    capacity: 20,
-    is_active: false,
-    created_at: '2026-08-01T08:00:00.000Z',
-    updated_at: '2026-08-01T08:00:00.000Z',
-  },
-];
+const DEFAULT_ROOMS: Room[] = [];
 
-const DEFAULT_EXAM_SESSIONS: ExamSession[] = [
-  {
-    id: 'sess-01',
-    name: 'Tes Kemampuan Belajar & BTQ (Sesi Pagi A)',
-    exam_date: '2027-03-07',
-    start_time: '08:00',
-    end_time: '09:30',
-    room_id: 'room-1a',
-    capacity: 25,
-    created_at: '2026-08-05T08:00:00.000Z',
-    updated_at: '2026-08-05T08:00:00.000Z',
-  },
-  {
-    id: 'sess-02',
-    name: 'Tes Kemampuan Belajar & BTQ (Sesi Pagi B)',
-    exam_date: '2027-03-07',
-    start_time: '08:00',
-    end_time: '09:30',
-    room_id: 'room-1b',
-    capacity: 25,
-    created_at: '2026-08-05T08:00:00.000Z',
-    updated_at: '2026-08-05T08:00:00.000Z',
-  },
-  {
-    id: 'sess-03',
-    name: 'Observasi Karakter & Wawancara (Sesi Siang)',
-    exam_date: '2027-03-07',
-    start_time: '10:00',
-    end_time: '11:30',
-    room_id: 'room-1a',
-    capacity: 25,
-    created_at: '2026-08-05T08:00:00.000Z',
-    updated_at: '2026-08-05T08:00:00.000Z',
-  },
-  {
-    id: 'sess-04',
-    name: 'Tes Kemampuan Belajar (Gelombang 2)',
-    exam_date: '2027-03-14',
-    start_time: '08:30',
-    end_time: '10:00',
-    room_id: 'room-1c',
-    capacity: 25,
-    created_at: '2026-08-05T08:00:00.000Z',
-    updated_at: '2026-08-05T08:00:00.000Z',
-  },
-];
+const DEFAULT_EXAM_SESSIONS: ExamSession[] = [];
 
-const DEFAULT_REGISTRANTS: Registrant[] = [
-  {
-    id: 'reg-001',
-    registration_number: 'SPMB-BINA-NUSA-001',
-    full_name: 'Ahmad Fauzan Al-Ghifari',
-    gender: 'Laki-laki',
-    birth_date: '2020-04-12',
-    education_level: 'SD',
-    previous_school: 'TK Ar-Rafah Rajeg',
-    phone: '081298765432',
-    created_at: '2026-08-10T09:15:00.000Z',
-    updated_at: '2026-08-10T09:15:00.000Z',
-  },
-  {
-    id: 'reg-002',
-    registration_number: 'SPMB-BINA-NUSA-002',
-    full_name: 'Siti Aisyah Humaira',
-    gender: 'Perempuan',
-    birth_date: '2020-06-25',
-    education_level: 'SD',
-    previous_school: 'TK Ar-Rafah Rajeg',
-    phone: '081387654321',
-    created_at: '2026-08-10T10:30:00.000Z',
-    updated_at: '2026-08-10T10:30:00.000Z',
-  },
-  {
-    id: 'reg-003',
-    registration_number: 'SPMB-BINA-NUSA-003',
-    full_name: 'Muhammad Raihan Pratama',
-    gender: 'Laki-laki',
-    birth_date: '2020-02-18',
-    education_level: 'SD',
-    previous_school: 'TK Islam Al-Azhar Rajeg',
-    phone: '085712345678',
-    created_at: '2026-08-11T08:45:00.000Z',
-    updated_at: '2026-08-11T08:45:00.000Z',
-  },
-  {
-    id: 'reg-004',
-    registration_number: 'SPMB-BINA-NUSA-004',
-    full_name: 'Zahra Nur Salsabila',
-    gender: 'Perempuan',
-    birth_date: '2020-08-09',
-    education_level: 'SD',
-    previous_school: 'PAUD Melati Mekarsari',
-    phone: '087890123456',
-    created_at: '2026-08-12T11:20:00.000Z',
-    updated_at: '2026-08-12T11:20:00.000Z',
-  },
-  {
-    id: 'reg-005',
-    registration_number: 'SPMB-BINA-NUSA-005',
-    full_name: 'Bilal Arrafah Rahman',
-    gender: 'Laki-laki',
-    birth_date: '2020-05-04',
-    education_level: 'SD',
-    previous_school: 'TK Ar-Rafah Rajeg',
-    phone: '081234567899',
-    created_at: '2026-08-13T14:10:00.000Z',
-    updated_at: '2026-08-13T14:10:00.000Z',
-  },
-  {
-    id: 'reg-006',
-    registration_number: 'SPMB-BINA-NUSA-006',
-    full_name: 'Fathimah Az-Zahra',
-    gender: 'Perempuan',
-    birth_date: '2020-09-17',
-    education_level: 'SD',
-    previous_school: 'TK Mutiara Hati',
-    phone: '081399887766',
-    created_at: '2026-08-14T09:00:00.000Z',
-    updated_at: '2026-08-14T09:00:00.000Z',
-  },
-  {
-    id: 'reg-007',
-    registration_number: 'SPMB-BINA-NUSA-007',
-    full_name: 'Kenzo Al-Ghazi',
-    gender: 'Laki-laki',
-    birth_date: '2020-03-30',
-    education_level: 'SD',
-    previous_school: 'TK Permata Bunda',
-    phone: '085811223344',
-    created_at: '2026-08-15T13:40:00.000Z',
-    updated_at: '2026-08-15T13:40:00.000Z',
-  },
-  {
-    id: 'reg-008',
-    registration_number: 'SPMB-BINA-NUSA-008',
-    full_name: 'Nayla Putri Khadijah',
-    gender: 'Perempuan',
-    birth_date: '2020-07-14',
-    education_level: 'SD',
-    previous_school: 'TK Ar-Rafah Rajeg',
-    phone: '081255443322',
-    created_at: '2026-08-16T10:15:00.000Z',
-    updated_at: '2026-08-16T10:15:00.000Z',
-  },
-];
+const DEFAULT_REGISTRANTS: Registrant[] = [];
 
-const DEFAULT_ASSIGNMENTS: ExamAssignment[] = [
-  {
-    id: 'assign-001',
-    registrant_id: 'reg-001',
-    exam_session_id: 'sess-01',
-    created_at: '2026-08-20T08:00:00.000Z',
-  },
-  {
-    id: 'assign-002',
-    registrant_id: 'reg-001',
-    exam_session_id: 'sess-03',
-    created_at: '2026-08-20T08:00:00.000Z',
-  },
-  {
-    id: 'assign-003',
-    registrant_id: 'reg-002',
-    exam_session_id: 'sess-01',
-    created_at: '2026-08-20T08:00:00.000Z',
-  },
-  {
-    id: 'assign-004',
-    registrant_id: 'reg-003',
-    exam_session_id: 'sess-02',
-    created_at: '2026-08-20T08:00:00.000Z',
-  },
-  {
-    id: 'assign-005',
-    registrant_id: 'reg-004',
-    exam_session_id: 'sess-02',
-    created_at: '2026-08-20T08:00:00.000Z',
-  },
-];
+const DEFAULT_ASSIGNMENTS: ExamAssignment[] = [];
 
-const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
-  {
-    id: 'ann-001',
-    registrant_id: 'reg-001',
-    status: 'Diterima',
-    is_published: true,
-    notes: 'Selamat! Calon siswa dinyatakan Diterima di SD Bina Nusa Tahun Pelajaran 2027/2028. Harap membawa dokumen asli saat verifikasi.',
-    published_at: '2026-08-25T10:00:00.000Z',
-    created_at: '2026-08-25T09:00:00.000Z',
-    updated_at: '2026-08-25T10:00:00.000Z',
-  },
-  {
-    id: 'ann-002',
-    registrant_id: 'reg-002',
-    status: 'Diterima',
-    is_published: true,
-    notes: 'Selamat! Diterima melalui jalur PPDB Inden (Alumni TK Ar-Rafah).',
-    published_at: '2026-08-25T10:00:00.000Z',
-    created_at: '2026-08-25T09:00:00.000Z',
-    updated_at: '2026-08-25T10:00:00.000Z',
-  },
-  {
-    id: 'ann-003',
-    registrant_id: 'reg-003',
-    status: 'Dalam Proses',
-    is_published: true,
-    notes: 'Berkas dan hasil observasi sedang dalam tahap penilaian oleh tim penguji SPMB.',
-    published_at: '2026-08-25T10:00:00.000Z',
-    created_at: '2026-08-25T09:00:00.000Z',
-    updated_at: '2026-08-25T10:00:00.000Z',
-  },
-  {
-    id: 'ann-004',
-    registrant_id: 'reg-004',
-    status: 'Belum Diterima',
-    is_published: true,
-    notes: 'Terima kasih atas partisipasi Anda. Kuota gelombang ini telah terpenuhi, dipersilakan mengikuti gelombang selanjutnya jika tersedia.',
-    published_at: '2026-08-25T10:00:00.000Z',
-    created_at: '2026-08-25T09:00:00.000Z',
-    updated_at: '2026-08-25T10:00:00.000Z',
-  },
-];
+const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
 
 // Helper to safely access browser storage
 function getStorageItem<T>(key: string, defaultValue: T): T {
@@ -360,7 +105,7 @@ export class SchoolDatabase {
       setStorageItem(STORAGE_KEYS.ANNOUNCEMENTS, DEFAULT_ANNOUNCEMENTS);
     }
     if (!localStorage.getItem(STORAGE_KEYS.NEXT_REG_SEQ)) {
-      setStorageItem(STORAGE_KEYS.NEXT_REG_SEQ, 9);
+      setStorageItem(STORAGE_KEYS.NEXT_REG_SEQ, 1);
     }
   }
 
@@ -1108,7 +853,7 @@ export class SchoolDatabase {
     setStorageItem(STORAGE_KEYS.REGISTRANTS, DEFAULT_REGISTRANTS);
     setStorageItem(STORAGE_KEYS.EXAM_ASSIGNMENTS, DEFAULT_ASSIGNMENTS);
     setStorageItem(STORAGE_KEYS.ANNOUNCEMENTS, DEFAULT_ANNOUNCEMENTS);
-    setStorageItem(STORAGE_KEYS.NEXT_REG_SEQ, 9);
+    setStorageItem(STORAGE_KEYS.NEXT_REG_SEQ, 1);
   }
 
   static resetToDefaults(): void {
