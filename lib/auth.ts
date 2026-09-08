@@ -5,53 +5,58 @@ export interface AdminUser {
   role: 'ADMIN';
 }
 
-const AUTH_STORAGE_KEY = 'sdbinanusa_admin_session_v1';
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
+    credentials: 'include',
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (body as { error?: string }).error || `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+  return body as T;
+}
 
 export class AdminAuth {
-  static getSession(): AdminUser | null {
+  static async getSession(): Promise<AdminUser | null> {
     if (typeof window === 'undefined') return null;
     try {
-      const data = localStorage.getItem(AUTH_STORAGE_KEY);
-      return data ? JSON.parse(data) : null;
+      const data = await fetchJson<{ user: AdminUser | null }>('/api/admin/login', { method: 'GET' });
+      return data.user;
     } catch {
       return null;
     }
   }
 
-  static getCurrentUser(): AdminUser | null {
+  static async getCurrentUser(): Promise<AdminUser | null> {
     return this.getSession();
   }
 
-  static login(email: string, password: string): { success: boolean; error?: string; user?: AdminUser } {
-    const cleanEmail = email.trim().toLowerCase();
-    // ponytail: client-side auth only — ceiling = demo/prototype. Upgrade to server session (NextAuth/HTTP-only cookie + API guard) for production.
-    const allowedEmails = ['admin@binanusa.sch.id', 'admin@arrafah.sch.id', 'panitia@binanusa.sch.id'];
-    if (allowedEmails.includes(cleanEmail) && password === 'admin123') {
-      const user: AdminUser = {
-        id: 'admin-001',
-        email: cleanEmail,
-        name: 'Panitia SPMB SD Bina Nusa',
-        role: 'ADMIN',
-      };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-      }
-      return { success: true, user };
-    }
-
-    return {
-      success: false,
-      error: 'Kombinasi email atau password salah. Gunakan default: admin@binanusa.sch.id / admin123',
-    };
-  }
-
-  static logout(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+  static async login(email: string, password: string): Promise<{ success: boolean; error?: string; user?: AdminUser }> {
+    try {
+      const data = await fetchJson<{ user: AdminUser }>('/api/admin/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      return { success: true, user: data.user };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Login gagal.';
+      return { success: false, error: msg };
     }
   }
 
-  static isAuthenticated(): boolean {
-    return this.getSession() !== null;
+  static async logout(): Promise<void> {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
+    } catch {
+      // ignore
+    }
+  }
+
+  static async isAuthenticated(): Promise<boolean> {
+    const s = await this.getSession();
+    return s !== null;
   }
 }

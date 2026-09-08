@@ -77,13 +77,13 @@ export default function RegistrationModal({
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
     try {
-      const { registrant } = SchoolDatabase.registerNewStudent({
+      const { registrant } = await SchoolDatabase.registerNewStudent({
         full_name: formData.fullName,
         gender: formData.gender,
         birth_date: formData.birthDate,
@@ -96,8 +96,8 @@ export default function RegistrationModal({
       if (onSuccessRegistered) {
         onSuccessRegistered(registrant);
       }
-    } catch (err: any) {
-      setErrors({ form: err.message || 'Terjadi kesalahan saat memproses pendaftaran.' });
+    } catch (err: unknown) {
+      setErrors({ form: (err instanceof Error ? err.message : String(err)) || 'Terjadi kesalahan saat memproses pendaftaran.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -110,9 +110,9 @@ export default function RegistrationModal({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handlePrintSlip = () => {
+  const handlePrintSlip = async () => {
     if (!successResult) return;
-    const settings = SchoolDatabase.getSettings();
+    const settings = await SchoolDatabase.getSettings();
     const esc = (s: string) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Bukti Pendaftaran - ${esc(successResult.registration_number)}</title><style>body{font-family:system-ui,sans-serif;color:#0F172A;padding:40px;max-width:640px;margin:0 auto}h1{color:#03357E;font-size:22px;margin:0}small{color:#64748B}.card{border:2px dashed #03357E;border-radius:16px;padding:24px;margin:20px 0;background:#F5F8FC;text-align:center}.num{font-family:monospace;font-size:28px;font-weight:800;color:#03357E;letter-spacing:2px}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #E2E8F0;font-size:13px}.label{color:#64748B}.foot{font-size:11px;color:#64748B;margin-top:16px;border-top:1px solid #E2E8F0;padding-top:12px}@media print{body{padding:20px}}</style></head><body>
       <div style="text-align:center;border-bottom:3px solid #03357E;padding-bottom:16px;margin-bottom:20px"><img src="${new URL('/logo-bina-nusa.jpeg', window.location.origin).href}" alt="Logo" style="width:48px;height:48px;object-fit:cover;border-radius:12px;display:inline-block"/><h1>SD Bina Nusa</h1><small>${esc(settings.foundation_name||'')} • ${esc(settings.school_address||'')}</small><br><small>SPMB TP ${esc(settings.academic_year||'')} • ${esc(settings.school_phone||'')}</small></div>

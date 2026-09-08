@@ -13,16 +13,11 @@ import ScheduleCheckSection from '@/components/public/ScheduleCheckSection';
 import AnnouncementCheckSection from '@/components/public/AnnouncementCheckSection';
 import Footer from '@/components/public/Footer';
 import RegistrationModal from '@/components/public/RegistrationModal';
-import { SchoolDatabase } from '@/lib/db';
-import { ArrowRight, Sparkles, Phone, FileCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Sparkles, Phone } from 'lucide-react';
 
 export default function HomePage() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [selectedRegNumberForLookup, setSelectedRegNumberForLookup] = useState<string>('');
-
-  useEffect(() => {
-    SchoolDatabase.init();
-  }, []);
 
   const handleOpenRegister = () => {
     setIsRegisterOpen(true);
