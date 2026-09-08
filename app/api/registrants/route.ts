@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       break;
     }
     if ((insErr as { code?: string })?.code === '23505') {
-      lastError = insErr.message;
+      lastError = insErr?.message || 'Gagal menyimpan pendaftar.';
       continue; // retry with next seq
     }
     lastError = insErr?.message || 'Gagal menyimpan pendaftar.';

@@ -36,8 +36,6 @@ export default function ExamSessionManagement({ onRefreshParent }: Props) {
   };
 
   useEffect(() => { (async () => { setLoading(true); await refreshData(); setLoading(false); })(); }, []);
-  // sync roomId after rooms loaded
-  useEffect(() => { if (!roomId) { const a = rooms.find((r) => r.is_active); if (a) setRoomId(a.id); } }, [rooms, roomId]);
 
   const handleOpenAdd = () => {
     const active = rooms.filter((r) => r.is_active);

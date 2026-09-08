@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileCheck2, Search, CheckCircle2, Clock3, XCircle, AlertCircle, Printer } from 'lucide-react';
 import { SchoolDatabase } from '@/lib/db';
 import { PublicAnnouncementLookupResult } from '@/lib/types';
@@ -13,8 +13,11 @@ export default function AnnouncementCheckSection({ prefilledRegNumber }: Props) 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [searching, setSearching] = useState(false);
-
-  useEffect(() => { if (prefilledRegNumber) setRegNumberInput(prefilledRegNumber); }, [prefilledRegNumber]);
+  const [prevPrefilled, setPrevPrefilled] = useState(prefilledRegNumber);
+  if (prefilledRegNumber !== prevPrefilled) {
+    setPrevPrefilled(prefilledRegNumber);
+    if (prefilledRegNumber) setRegNumberInput(prefilledRegNumber);
+  }
 
   const doLookup = async (num: string) => {
     setSearching(true); setHasSearched(true); setErrorMessage(null); setResult(null);
