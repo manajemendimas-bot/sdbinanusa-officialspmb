@@ -19,7 +19,7 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [currentTab, setCurrentTab] = useState<AdminTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [, setRefreshKey] = useState(0);
 
   useEffect(() => {
     AdminAuth.getSession().then((u) => {
@@ -77,7 +77,7 @@ export default function AdminPage() {
             </Link>
           </div>
         </header>
-        <main key={refreshKey} className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
           {currentTab === 'dashboard' && <DashboardOverview onNavigateTab={(tab) => setCurrentTab(tab)} onRefresh={handleRefresh} />}
           {currentTab === 'registrants' && <RegistrantManagement onRefreshParent={handleRefresh} />}
           {currentTab === 'exams' && <ExamSessionManagement onRefreshParent={handleRefresh} />}
