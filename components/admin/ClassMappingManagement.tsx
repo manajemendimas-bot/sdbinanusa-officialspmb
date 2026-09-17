@@ -100,10 +100,19 @@ export default function ClassMappingManagement({ onRefreshParent }: Props) {
             <thead className="bg-[#F5F8FC] text-[#03357E] border-b border-[#E2E8F0]"><tr><th className="py-2.5 px-4 font-bold">No. Registrasi</th><th className="py-2.5 px-4 font-bold">Nama Peserta Didik</th><th className="py-2.5 px-4 font-bold">Nilai Ujian</th><th className="py-2.5 px-4 font-bold text-right">Aksi</th></tr></thead>
             <tbody className="divide-y divide-[#F1F5F9]">
               {passedRegistrants.length === 0 ? <tr><td colSpan={4} className="py-8 text-center text-xs text-[#64748B]">Belum ada pendaftar berstatus Diterima.</td></tr> : passedRegistrants.map((r) => (
-                <tr key={r.id} className="hover:bg-[#F5F8FC]">
+                <tr key={r.id} className={r.exam_score !== null && r.exam_score !== undefined ? 'bg-emerald-50/40 hover:bg-emerald-50' : 'hover:bg-[#F5F8FC]'}>
                   <td className="py-2.5 px-4 font-mono font-bold text-[#03357E]">{r.registration_number}</td>
                   <td className="py-2.5 px-4 font-semibold text-[#0F172A]">{r.full_name}</td>
-                  <td className="py-2.5 px-4"><input type="number" min="0" step="0.01" value={scoreInputs[r.id] ?? (r.exam_score ?? '')} onChange={(e) => setScoreInputs((prev) => ({ ...prev, [r.id]: e.target.value }))} className="w-28 px-2 py-1 text-xs rounded-md border border-[#CBD5E1] bg-white focus:outline-hidden" /></td>
+                  <td className="py-2.5 px-4">
+                    <div className="flex items-center gap-2">
+                      <input type="number" min="0" step="0.01" value={scoreInputs[r.id] ?? (r.exam_score ?? '')} onChange={(e) => setScoreInputs((prev) => ({ ...prev, [r.id]: e.target.value }))} className="w-28 px-2 py-1 text-xs rounded-md border border-[#CBD5E1] bg-white focus:outline-hidden" />
+                      {r.exam_score !== null && r.exam_score !== undefined ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full shrink-0"><Check className="w-3 h-3" />Tersimpan</span>
+                      ) : (
+                        <span className="text-[10px] font-semibold text-[#94A3B8] shrink-0">Belum diisi</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="py-2.5 px-4 text-right"><button onClick={() => handleSaveScore(r.id)} disabled={savingScoreId === r.id} className="px-2.5 py-1 rounded-md text-[11px] font-bold text-[#03357E] bg-[#FFBE00] hover:bg-[#E6AB00] cursor-pointer disabled:opacity-60 inline-flex items-center gap-1"><Save className="w-3 h-3" />{savingScoreId === r.id ? 'Menyimpan...' : 'Simpan'}</button></td>
                 </tr>
               ))}
