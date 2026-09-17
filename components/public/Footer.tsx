@@ -58,7 +58,7 @@ export default function Footer({ onOpenRegister }: FooterProps) {
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-[#FFBE00] shrink-0" />
-                <span>0812-1327-5802 / (021) 5937-2008</span>
+                <span>0812-1327-5802</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-[#FFBE00] shrink-0" />
