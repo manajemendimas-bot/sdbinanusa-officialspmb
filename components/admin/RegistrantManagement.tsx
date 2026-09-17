@@ -1,11 +1,34 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Users, Search, Filter, Download, Plus, Edit, Trash2, Eye, X, AlertTriangle, Phone, Calendar, School } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Users, Search, Filter, Download, Upload, Plus, Edit, Trash2, Eye, X, AlertTriangle, Phone, Calendar, School } from 'lucide-react';
 import { SchoolDatabase } from '@/lib/db';
 import { Registrant, Gender, ExamAssignment, Announcement } from '@/lib/types';
 
 interface RegistrantManagementProps { onRefreshParent: () => void; }
+
+// Minimal RFC4180-ish CSV parser (quoted fields, escaped "", commas/newlines inside quotes). No library needed — import format is our own template.
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let inQuotes = false;
+  const pushField = () => { row.push(field); field = ''; };
+  const pushRow = () => { pushField(); rows.push(row); row = []; };
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      else field += c;
+    } else if (c === '"') inQuotes = true;
+    else if (c === ',') pushField();
+    else if (c === '\n') pushRow();
+    else if (c === '\r') { /* skip */ }
+    else field += c;
+  }
+  if (field || row.length) pushRow();
+  return rows.filter((r) => r.length > 1 || r[0] !== '');
+}
 
 export default function RegistrantManagement({ onRefreshParent }: RegistrantManagementProps) {
   const [registrants, setRegistrants] = useState<Registrant[]>([]);
@@ -25,6 +48,9 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
   const [formData, setFormData] = useState({ fullName: '', gender: 'Laki-laki' as Gender, birthDate: '', educationLevel: 'SD' as const, previousSchool: '', phone: '' });
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ success: number; failed: { row: number; reason: string }[] } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshData = async () => {
     setError(null);
@@ -94,6 +120,39 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
     const link = document.createElement('a'); link.setAttribute('href', url); link.setAttribute('download', `data-pendaftar-spmb-binus-${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   };
+  const handleDownloadTemplate = () => {
+    const csvContent = [
+      ['Nama Lengkap', 'Jenis Kelamin (Laki-laki/Perempuan)', 'Tanggal Lahir (YYYY-MM-DD)', 'Asal Sekolah', 'No Telepon'],
+      ['Contoh Nama', 'Laki-laki', '2020-05-15', 'TK Contoh', '081234567890'],
+    ].map((row) => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.setAttribute('href', url); link.setAttribute('download', 'template-import-pendaftar-spmb.csv');
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  };
+  const handleImportCSV = async (file: File) => {
+    setImporting(true); setImportResult(null); setError(null);
+    try {
+      const dataRows = parseCsv(await file.text()).slice(1); // baris pertama = header
+      let success = 0;
+      const failed: { row: number; reason: string }[] = [];
+      for (let i = 0; i < dataRows.length; i++) {
+        const [fullName, genderRaw, birthDate, previousSchool, phone] = dataRows[i];
+        const rowNum = i + 2; // +1 header, +1 karena 1-indexed
+        if (!fullName?.trim() || !birthDate?.trim() || !previousSchool?.trim() || !phone?.trim()) { failed.push({ row: rowNum, reason: 'Ada kolom wajib yang kosong.' }); continue; }
+        const gender = genderRaw?.trim() as Gender;
+        if (gender !== 'Laki-laki' && gender !== 'Perempuan') { failed.push({ row: rowNum, reason: 'Jenis kelamin harus "Laki-laki" atau "Perempuan".' }); continue; }
+        try {
+          // Sekuensial (bukan Promise.all) supaya penomoran SPMB tetap urut & retry sequence server aman.
+          await SchoolDatabase.registerNewStudent({ full_name: fullName.trim(), gender, birth_date: birthDate.trim(), previous_school: previousSchool.trim(), phone: phone.trim() });
+          success++;
+        } catch (err: unknown) { failed.push({ row: rowNum, reason: err instanceof Error ? err.message : String(err) }); }
+      }
+      setImportResult({ success, failed });
+      if (success > 0) await refreshData();
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+  };
   const openDetail = async (r: Registrant) => {
     setDetailRegistrant(r); setDetailSchedules([]);
     try {
@@ -108,7 +167,10 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0]">
         <div><h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#03357E]">Data Pendaftar SPMB</h1><p className="text-xs text-[#64748B] mt-0.5">Kelola master data seluruh calon peserta didik baru TP 2027/2028.</p></div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <input ref={fileInputRef} type="file" accept=".csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportCSV(f); }} />
+          <button onClick={handleDownloadTemplate} className="px-3 py-2 text-xs font-semibold text-[#334155] bg-white border border-[#CBD5E1] hover:bg-[#F5F8FC] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs" title="Unduh format CSV untuk diisi"><Download className="w-3.5 h-3.5 text-[#03357E]" /><span>Template CSV</span></button>
+          <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="px-3 py-2 text-xs font-semibold text-[#334155] bg-white border border-[#CBD5E1] hover:bg-[#F5F8FC] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-60"><Upload className="w-3.5 h-3.5 text-[#03357E]" /><span>{importing ? 'Mengimpor...' : 'Impor CSV'}</span></button>
           <button onClick={handleExportCSV} className="px-3 py-2 text-xs font-semibold text-[#334155] bg-white border border-[#CBD5E1] hover:bg-[#F5F8FC] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"><Download className="w-3.5 h-3.5 text-[#03357E]" /><span>Ekspor CSV</span></button>
           <button onClick={handleOpenAdd} className="px-3.5 py-2 text-xs font-bold text-[#03357E] bg-[#FFBE00] hover:bg-[#E6AB00] rounded-lg shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"><Plus className="w-4 h-4" /><span>Tambah Pendaftar</span></button>
         </div>
@@ -201,6 +263,22 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
             <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto"><AlertTriangle className="w-6 h-6" /></div>
             <div className="text-center space-y-1"><h3 className="font-serif font-bold text-lg text-[#0F172A]">Konfirmasi Hapus Pendaftar</h3><p className="text-xs text-[#64748B]">Apakah Anda yakin ingin menghapus <strong>{deletingRegistrant.full_name}</strong> ({deletingRegistrant.registration_number})? Tindakan ini akan menghapus alokasi ujian dan pengumuman terkait.</p></div>
             <div className="pt-3 flex gap-2"><button onClick={() => setDeletingRegistrant(null)} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-[#F5F8FC] border border-[#CBD5E1] text-[#64748B] cursor-pointer hover:bg-[#E2E8F0]">Batal</button><button onClick={handleConfirmDelete} disabled={submitting} className="flex-1 py-2 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 cursor-pointer disabled:opacity-60">{submitting ? 'Menghapus...' : 'Hapus Sekarang'}</button></div>
+          </div>
+        </div>
+      )}
+      {importResult && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-[#E2E8F0] overflow-hidden">
+            <div className="bg-[#03357E] text-white px-5 py-4 flex items-center justify-between"><h3 className="font-serif font-bold text-lg">Hasil Impor CSV</h3><button onClick={() => setImportResult(null)} className="text-white/80 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button></div>
+            <div className="p-6 space-y-3 text-xs">
+              <p className="font-semibold text-[#0F172A]"><span className="text-emerald-600">{importResult.success} berhasil</span>{importResult.failed.length > 0 && <>, <span className="text-rose-600">{importResult.failed.length} gagal</span></>}.</p>
+              {importResult.failed.length > 0 && (
+                <div className="max-h-48 overflow-y-auto space-y-1 bg-rose-50 border border-rose-200 rounded-lg p-3">
+                  {importResult.failed.map((f, i) => <div key={i} className="text-rose-700">Baris {f.row}: {f.reason}</div>)}
+                </div>
+              )}
+              <div className="pt-2 flex justify-end"><button onClick={() => setImportResult(null)} className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#F5F8FC] border border-[#CBD5E1] text-[#334155] cursor-pointer hover:bg-[#E2E8F0]">Tutup</button></div>
+            </div>
           </div>
         </div>
       )}
