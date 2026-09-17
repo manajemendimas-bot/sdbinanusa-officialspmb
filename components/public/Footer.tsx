@@ -1,15 +1,13 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { 
-  Building2, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Calendar, 
-  Shield, 
-  Lock, 
+import {
+  Building2,
+  MapPin,
+  Phone,
+  Mail,
+  Calendar,
+  Shield,
   ArrowUp,
   Heart
 } from 'lucide-react';
@@ -143,14 +141,6 @@ export default function Footer({ onOpenRegister }: FooterProps) {
           </div>
 
           <div className="flex items-center gap-6">
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-white hover:text-[#FFBE00] transition-colors bg-[#1F4590] px-3.5 py-1.5 rounded-full border border-white/20"
-            >
-              <Lock className="w-3 h-3" />
-              <span>Portal Admin SPMB</span>
-            </Link>
-
             <button
               onClick={scrollToTop}
               className="p-2 rounded-full bg-[#1F4590] text-white hover:bg-[#183773] border border-white/20 transition-colors cursor-pointer"
