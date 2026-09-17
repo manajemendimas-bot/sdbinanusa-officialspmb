@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     let age = now.getFullYear() - birth.getFullYear();
     const m = now.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
-    if (age < 4 || age > 12) return NextResponse.json({ error: 'Harap periksa tanggal lahir (usia calon peserta didik SD 5–8 tahun).' }, { status: 400 });
+    if (age < 4 || age > 12) return NextResponse.json({ error: 'Harap periksa tanggal lahir (usia calon peserta didik SD 4–12 tahun).' }, { status: 400 });
   }
   if (!previous_school) return NextResponse.json({ error: 'Asal sekolah wajib diisi.' }, { status: 400 });
   if (!isValidPhone(phone)) return NextResponse.json({ error: 'Nomor telepon / WhatsApp harus berupa nomor valid (9–15 digit angka).' }, { status: 400 });

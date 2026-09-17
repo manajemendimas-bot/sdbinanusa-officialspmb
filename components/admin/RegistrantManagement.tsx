@@ -9,26 +9,47 @@ import { waveForDate } from '@/lib/waves';
 interface RegistrantManagementProps { onRefreshParent: () => void; }
 
 // Minimal RFC4180-ish CSV parser (quoted fields, escaped "", commas/newlines inside quotes). No library needed — import format is our own template.
+// Auto-detect delimiter: Excel locale Indonesia nyimpen CSV pakai ";" bukan ",", kalau dipaksa koma tiap baris kebaca 1 kolom gede -> semua baris gagal.
 function parseCsv(text: string): string[][] {
+  const clean = text.replace(/^﻿/, ''); // strip BOM dari file Excel
+  const firstLine = clean.slice(0, clean.search(/\r?\n/) === -1 ? clean.length : clean.search(/\r?\n/));
+  const delimiter = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ',';
   const rows: string[][] = [];
   let row: string[] = [];
   let field = '';
   let inQuotes = false;
   const pushField = () => { row.push(field); field = ''; };
   const pushRow = () => { pushField(); rows.push(row); row = []; };
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
+  for (let i = 0; i < clean.length; i++) {
+    const c = clean[i];
     if (inQuotes) {
-      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      if (c === '"') { if (clean[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
       else field += c;
     } else if (c === '"') inQuotes = true;
-    else if (c === ',') pushField();
+    else if (c === delimiter) pushField();
     else if (c === '\n') pushRow();
     else if (c === '\r') { /* skip */ }
     else field += c;
   }
   if (field || row.length) pushRow();
   return rows.filter((r) => r.length > 1 || r[0] !== '');
+}
+
+// Terima "L"/"P" (singkatan umum di data sekolah) selain "Laki-laki"/"Perempuan" penuh.
+function normalizeGender(raw?: string): Gender | null {
+  const v = (raw || '').trim().toLowerCase();
+  if (v === 'l' || v.startsWith('laki')) return 'Laki-laki';
+  if (v === 'p' || v.startsWith('perempuan')) return 'Perempuan';
+  return null;
+}
+
+// Terima YYYY-MM-DD (format form kita) atau DD-MM-YYYY / DD/MM/YYYY (format umum Excel Indonesia).
+function normalizeDate(raw?: string): string | null {
+  const v = (raw || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const m = v.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return null;
 }
 
 export default function RegistrantManagement({ onRefreshParent }: RegistrantManagementProps) {
@@ -134,18 +155,29 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
   const handleImportCSV = async (file: File) => {
     setImporting(true); setImportResult(null); setError(null);
     try {
-      const dataRows = parseCsv(await file.text()).slice(1); // baris pertama = header
+      const rows = parseCsv(await file.text());
+      const header = (rows[0] || []).map((h) => h.trim().toLowerCase());
+      const findCol = (keywords: string[]) => header.findIndex((h) => keywords.some((k) => h.includes(k)));
+      const col = { name: findCol(['nama']), gender: findCol(['kelamin', 'jk']), birth: findCol(['lahir']), school: findCol(['sekolah']), phone: findCol(['telepon', 'hp', 'wa']) };
+      if (Object.values(col).some((idx) => idx === -1)) {
+        setImportResult({ success: 0, failed: [{ row: 1, reason: 'Header CSV tidak dikenali. Pastikan ada kolom Nama, Jenis Kelamin, Tanggal Lahir, Asal Sekolah, No Telepon (boleh urutan/kolom lain campur, dikenali dari nama header).' }] });
+        return;
+      }
+      const dataRows = rows.slice(1);
       let success = 0;
       const failed: { row: number; reason: string }[] = [];
       for (let i = 0; i < dataRows.length; i++) {
-        const [fullName, genderRaw, birthDate, previousSchool, phone] = dataRows[i];
+        const r = dataRows[i];
+        const fullName = r[col.name], genderRaw = r[col.gender], birthRaw = r[col.birth], previousSchool = r[col.school], phone = r[col.phone];
         const rowNum = i + 2; // +1 header, +1 karena 1-indexed
-        if (!fullName?.trim() || !birthDate?.trim() || !previousSchool?.trim() || !phone?.trim()) { failed.push({ row: rowNum, reason: 'Ada kolom wajib yang kosong.' }); continue; }
-        const gender = genderRaw?.trim() as Gender;
-        if (gender !== 'Laki-laki' && gender !== 'Perempuan') { failed.push({ row: rowNum, reason: 'Jenis kelamin harus "Laki-laki" atau "Perempuan".' }); continue; }
+        if (!fullName?.trim() || !birthRaw?.trim() || !previousSchool?.trim() || !phone?.trim()) { failed.push({ row: rowNum, reason: 'Ada kolom wajib yang kosong.' }); continue; }
+        const gender = normalizeGender(genderRaw);
+        if (!gender) { failed.push({ row: rowNum, reason: 'Jenis kelamin harus "Laki-laki"/"L" atau "Perempuan"/"P".' }); continue; }
+        const birthDate = normalizeDate(birthRaw);
+        if (!birthDate) { failed.push({ row: rowNum, reason: 'Format tanggal lahir tidak dikenali (pakai YYYY-MM-DD atau DD-MM-YYYY).' }); continue; }
         try {
           // Sekuensial (bukan Promise.all) supaya penomoran SPMB tetap urut & retry sequence server aman.
-          await SchoolDatabase.registerNewStudent({ full_name: fullName.trim(), gender, birth_date: birthDate.trim(), previous_school: previousSchool.trim(), phone: phone.trim() });
+          await SchoolDatabase.registerNewStudent({ full_name: fullName.trim(), gender, birth_date: birthDate, previous_school: previousSchool.trim(), phone: phone.trim() });
           success++;
         } catch (err: unknown) { failed.push({ row: rowNum, reason: err instanceof Error ? err.message : String(err) }); }
       }
