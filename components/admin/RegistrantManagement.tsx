@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Users, Search, Filter, Download, Upload, Plus, Edit, Trash2, Eye, X, AlertTriangle, Phone, Calendar, School } from 'lucide-react';
 import { SchoolDatabase } from '@/lib/db';
 import { Registrant, Gender, ExamAssignment, Announcement } from '@/lib/types';
+import { waveForDate } from '@/lib/waves';
 
 interface RegistrantManagementProps { onRefreshParent: () => void; }
 
@@ -45,7 +46,7 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
   const [detailRegistrant, setDetailRegistrant] = useState<Registrant | null>(null);
   const [detailSchedules, setDetailSchedules] = useState<{ sessionName: string; exam_date: string; start_time: string; end_time: string; roomName: string }[]>([]);
   const [deletingRegistrant, setDeletingRegistrant] = useState<Registrant | null>(null);
-  const [formData, setFormData] = useState({ fullName: '', gender: 'Laki-laki' as Gender, birthDate: '', educationLevel: 'SD' as const, previousSchool: '', phone: '' });
+  const [formData, setFormData] = useState({ fullName: '', gender: 'Laki-laki' as Gender, birthDate: '', educationLevel: 'SD' as const, previousSchool: '', phone: '', registrationNumber: '' });
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -76,12 +77,12 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
   });
 
   const handleOpenAdd = () => {
-    setFormData({ fullName: '', gender: 'Laki-laki', birthDate: '2020-05-15', educationLevel: 'SD', previousSchool: '', phone: '' });
+    setFormData({ fullName: '', gender: 'Laki-laki', birthDate: '2020-05-15', educationLevel: 'SD', previousSchool: '', phone: '', registrationNumber: '' });
     setFormError(null); setIsAddModalOpen(true);
   };
   const handleOpenEdit = (r: Registrant) => {
     setEditingRegistrant(r);
-    setFormData({ fullName: r.full_name, gender: r.gender, birthDate: r.birth_date, educationLevel: r.education_level, previousSchool: r.previous_school, phone: r.phone });
+    setFormData({ fullName: r.full_name, gender: r.gender, birthDate: r.birth_date, educationLevel: r.education_level, previousSchool: r.previous_school, phone: r.phone, registrationNumber: r.registration_number });
     setFormError(null);
   };
   const handleSaveNew = async (e: React.FormEvent) => {
@@ -98,7 +99,7 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
     e.preventDefault(); if (!editingRegistrant) return;
     setSubmitting(true); setFormError(null);
     try {
-      await SchoolDatabase.updateRegistrant(editingRegistrant.id, { full_name: formData.fullName, gender: formData.gender, birth_date: formData.birthDate, education_level: formData.educationLevel, previous_school: formData.previousSchool, phone: formData.phone });
+      await SchoolDatabase.updateRegistrant(editingRegistrant.id, { full_name: formData.fullName, gender: formData.gender, birth_date: formData.birthDate, education_level: formData.educationLevel, previous_school: formData.previousSchool, phone: formData.phone, registration_number: formData.registrationNumber });
       setEditingRegistrant(null); await refreshData();
     } catch (err: unknown) { setFormError(err instanceof Error ? err.message : String(err)); }
     finally { setSubmitting(false); }
@@ -194,9 +195,9 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F5F8FC] text-[#03357E] border-b border-[#E2E8F0]"><tr><th className="py-3 px-4 font-bold">No. Registrasi</th><th className="py-3 px-4 font-bold">Nama Lengkap</th><th className="py-3 px-4 font-bold">L/P</th><th className="py-3 px-4 font-bold">Asal Sekolah</th><th className="py-3 px-4 font-bold">No. Telepon</th><th className="py-3 px-4 font-bold">Jadwal Ujian</th><th className="py-3 px-4 font-bold">Status Kelulusan</th><th className="py-3 px-4 font-bold text-right">Aksi</th></tr></thead>
+            <thead className="bg-[#F5F8FC] text-[#03357E] border-b border-[#E2E8F0]"><tr><th className="py-3 px-4 font-bold">No. Registrasi</th><th className="py-3 px-4 font-bold">Nama Lengkap</th><th className="py-3 px-4 font-bold">L/P</th><th className="py-3 px-4 font-bold">Asal Sekolah</th><th className="py-3 px-4 font-bold">No. Telepon</th><th className="py-3 px-4 font-bold">Periode</th><th className="py-3 px-4 font-bold">Jadwal Ujian</th><th className="py-3 px-4 font-bold">Status Kelulusan</th><th className="py-3 px-4 font-bold text-right">Aksi</th></tr></thead>
             <tbody className="divide-y divide-[#F1F5F9]">
-              {filteredRegistrants.length === 0 ? <tr><td colSpan={8} className="py-8 text-center text-xs text-[#64748B]">Tidak ada data pendaftar yang sesuai pencarian.</td></tr> : filteredRegistrants.map((r) => {
+              {filteredRegistrants.length === 0 ? <tr><td colSpan={9} className="py-8 text-center text-xs text-[#64748B]">Tidak ada data pendaftar yang sesuai pencarian.</td></tr> : filteredRegistrants.map((r) => {
                 const hasSchedule = assignments.some((a) => a.registrant_id === r.id);
                 const ann = announcements.find((a) => a.registrant_id === r.id);
                 return (
@@ -206,6 +207,7 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
                     <td className="py-3 px-4 text-[#64748B]">{r.gender === 'Laki-laki' ? 'L' : 'P'}</td>
                     <td className="py-3 px-4 text-[#475569] max-w-[180px] truncate">{r.previous_school}</td>
                     <td className="py-3 px-4 font-mono text-[#64748B]">{r.phone}</td>
+                    <td className="py-3 px-4 text-[#475569]">{waveForDate(r.created_at)?.name || '-'}</td>
                     <td className="py-3 px-4"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${hasSchedule ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{hasSchedule ? 'Terjadwal' : 'Belum'}</span></td>
                     <td className="py-3 px-4"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${ann?.status === 'Diterima' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ann?.status === 'Belum Diterima' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-gray-100 text-gray-700'}`}>{ann?.status || 'Dalam Proses'}</span></td>
                     <td className="py-3 px-4 text-right"><div className="flex items-center justify-end gap-1.5">
@@ -228,6 +230,7 @@ export default function RegistrantManagement({ onRefreshParent }: RegistrantMana
             <div className="bg-[#03357E] text-white px-5 py-4 flex items-center justify-between"><h3 className="font-serif font-bold text-lg">{isAddModalOpen ? 'Tambah Pendaftar Baru' : `Edit: ${editingRegistrant?.registration_number}`}</h3><button onClick={() => { setIsAddModalOpen(false); setEditingRegistrant(null); setFormError(null); }} className="text-white/80 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button></div>
             <form onSubmit={isAddModalOpen ? handleSaveNew : handleSaveEdit} className="p-6 space-y-4">
               {formError && <div className="p-3 rounded-lg bg-rose-50 text-rose-700 text-xs border border-rose-200">{formError}</div>}
+              {editingRegistrant && <div><label className="block text-xs font-bold text-[#0F172A] mb-1">Nomor Registrasi</label><input type="text" required value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} className="w-full px-3 py-2 text-xs rounded-lg border border-[#CBD5E1] bg-[#F5F8FC] focus:outline-hidden focus:ring-2 focus:ring-[#03357E] font-mono" /></div>}
               <div><label className="block text-xs font-bold text-[#0F172A] mb-1">Nama Lengkap</label><input type="text" required value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className="w-full px-3 py-2 text-xs rounded-lg border border-[#CBD5E1] bg-[#F5F8FC] focus:outline-hidden focus:ring-2 focus:ring-[#03357E]" /></div>
               <div className="grid grid-cols-2 gap-3"><div><label className="block text-xs font-bold text-[#0F172A] mb-1">Jenis Kelamin</label><select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })} className="w-full px-3 py-2 text-xs rounded-lg border border-[#CBD5E1] bg-[#F5F8FC]"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div><div><label className="block text-xs font-bold text-[#0F172A] mb-1">Tanggal Lahir</label><input type="date" required value={formData.birthDate} onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })} className="w-full px-3 py-2 text-xs rounded-lg border border-[#CBD5E1] bg-[#F5F8FC]" /></div></div>
               <div><label className="block text-xs font-bold text-[#0F172A] mb-1">Asal Sekolah</label><input type="text" required value={formData.previousSchool} onChange={(e) => setFormData({ ...formData, previousSchool: e.target.value })} placeholder="Contoh: TK Ar-Rafah" className="w-full px-3 py-2 text-xs rounded-lg border border-[#CBD5E1] bg-[#F5F8FC]" /></div>

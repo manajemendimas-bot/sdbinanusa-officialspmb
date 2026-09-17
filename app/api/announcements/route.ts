@@ -21,7 +21,7 @@ export async function PATCH(req: NextRequest) {
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Body JSON tidak valid.' }, { status: 400 }); }
   const registrant_id = (body.registrant_id || '').trim();
   if (!registrant_id) return NextResponse.json({ error: 'registrant_id wajib diisi.' }, { status: 400 });
-  if (body.status && !['Dalam Proses', 'Diterima', 'Belum Diterima'].includes(body.status)) {
+  if (body.status && !['Dalam Proses', 'Diterima', 'Lulus Bersyarat (Tes Ulang)', 'Belum Diterima'].includes(body.status)) {
     return NextResponse.json({ error: 'Status tidak valid.' }, { status: 400 });
   }
 
@@ -66,9 +66,9 @@ export async function POST(req: NextRequest) {
   let body: { registrant_ids?: string[]; status?: string; is_published?: boolean };
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Body JSON tidak valid.' }, { status: 400 }); }
   const ids = body.registrant_ids || [];
-  const status = body.status as 'Dalam Proses' | 'Diterima' | 'Belum Diterima';
+  const status = body.status as 'Dalam Proses' | 'Diterima' | 'Lulus Bersyarat (Tes Ulang)' | 'Belum Diterima';
   if (!ids.length) return NextResponse.json({ error: 'registrant_ids wajib diisi.' }, { status: 400 });
-  if (!['Dalam Proses', 'Diterima', 'Belum Diterima'].includes(status)) return NextResponse.json({ error: 'Status tidak valid.' }, { status: 400 });
+  if (!['Dalam Proses', 'Diterima', 'Lulus Bersyarat (Tes Ulang)', 'Belum Diterima'].includes(status)) return NextResponse.json({ error: 'Status tidak valid.' }, { status: 400 });
   const isPublished = body.is_published !== undefined ? Boolean(body.is_published) : true;
 
   const supabase = getSupabaseServerClient();

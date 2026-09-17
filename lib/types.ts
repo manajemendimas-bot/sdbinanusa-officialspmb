@@ -1,6 +1,6 @@
 export type Gender = 'Laki-laki' | 'Perempuan';
 export type EducationLevel = 'SD';
-export type AnnouncementStatus = 'Dalam Proses' | 'Diterima' | 'Belum Diterima';
+export type AnnouncementStatus = 'Dalam Proses' | 'Diterima' | 'Lulus Bersyarat (Tes Ulang)' | 'Belum Diterima';
 
 export interface Registrant {
   id: string; // UUID
@@ -11,6 +11,7 @@ export interface Registrant {
   education_level: EducationLevel;
   previous_school: string;
   phone: string;
+  exam_score?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +41,22 @@ export interface ExamAssignment {
   id: string; // UUID
   registrant_id: string;
   exam_session_id: string;
+  created_at: string;
+}
+
+export interface SchoolClass {
+  id: string; // UUID
+  name: string; // e.g. Kelas 1A
+  capacity: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClassAssignment {
+  id: string; // UUID
+  registrant_id: string;
+  class_id: string;
   created_at: string;
 }
 

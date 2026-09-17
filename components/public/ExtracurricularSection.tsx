@@ -59,10 +59,10 @@ export default function ExtracurricularSection() {
       focus: 'Kekompakan',
     },
     {
-      name: 'Atletik',
-      category: 'Kebugaran & Lari',
-      desc: 'Lari jarak pendek, lompat jauh, ketahanan stamina, dan pondasi dasar kebugaran atletik anak.',
-      focus: 'Stamina',
+      name: "Tahfidz Qur'an",
+      category: 'Keagamaan & Akhlak',
+      desc: "Menghafal juz 'Amma dan surah-surah pilihan dengan metode talaqqi, membangun kecintaan pada Al-Qur'an sejak dini.",
+      focus: 'Hafalan',
     },
     {
       name: 'English Club',

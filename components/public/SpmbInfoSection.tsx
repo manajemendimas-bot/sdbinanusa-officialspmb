@@ -1,58 +1,30 @@
 'use client';
 
 import React from 'react';
-import { 
-  Calendar, 
-  Tag, 
-  Check, 
-  AlertCircle, 
-  ArrowRight, 
-  Receipt, 
+import {
+  Calendar,
+  Tag,
+  Check,
+  AlertCircle,
+  ArrowRight,
+  Receipt,
   Sparkles,
   HelpCircle,
   FileCheck
 } from 'lucide-react';
+import { WAVES, waveStatus, formatPeriodID } from '@/lib/waves';
 
 interface SpmbInfoSectionProps {
   onOpenRegister: () => void;
 }
 
 export default function SpmbInfoSection({ onOpenRegister }: SpmbInfoSectionProps) {
-  const waves = [
-    {
-      id: 'inden',
-      name: 'PPDB Inden',
-      badge: 'Prioritas & Paling Hemat',
-      period: '10 November 2025 – 31 Agustus 2026',
-      dspStandard: 'Rp7.000.000',
-      dspTkArrafah: 'Rp5.000.000',
-      dspTkLain: 'Rp5.500.000',
-      status: 'Sedang Berlangsung',
-      isPopular: true,
-    },
-    {
-      id: 'reguler-1',
-      name: 'Gelombang Reguler 1',
-      badge: 'Tahap 1',
-      period: '1 September 2026 – 30 November 2026',
-      dspStandard: 'Rp7.500.000',
-      dspTkArrafah: 'Rp6.000.000',
-      dspTkLain: 'Rp6.500.000',
-      status: 'Mendatang',
-      isPopular: false,
-    },
-    {
-      id: 'reguler-2',
-      name: 'Gelombang Reguler 2',
-      badge: 'Tahap 2',
-      period: '1 Desember 2026 – 27 Februari 2027',
-      dspStandard: 'Rp7.800.000',
-      dspTkArrafah: 'Rp6.300.000',
-      dspTkLain: 'Rp6.800.000',
-      status: 'Mendatang',
-      isPopular: false,
-    },
-  ];
+  const wavePricing: Record<string, { badge: string; dspStandard: string; dspTkArrafah: string; dspTkLain: string; isPopular: boolean }> = {
+    'inden': { badge: 'Prioritas & Paling Hemat', dspStandard: 'Rp7.000.000', dspTkArrafah: 'Rp5.000.000', dspTkLain: 'Rp5.500.000', isPopular: true },
+    'reguler-1': { badge: 'Tahap 1', dspStandard: 'Rp7.500.000', dspTkArrafah: 'Rp6.000.000', dspTkLain: 'Rp6.500.000', isPopular: false },
+    'reguler-2': { badge: 'Tahap 2', dspStandard: 'Rp7.800.000', dspTkArrafah: 'Rp6.300.000', dspTkLain: 'Rp6.800.000', isPopular: false },
+  };
+  const waves = WAVES.map((w) => ({ ...w, ...wavePricing[w.id], period: formatPeriodID(w), status: waveStatus(w) }));
 
   const additionalFees = [
     { name: 'Biaya Formulir Pendaftaran', amount: 'Rp50.000', note: 'Dibayarkan saat pendaftaran' },
@@ -136,6 +108,9 @@ export default function SpmbInfoSection({ onOpenRegister }: SpmbInfoSectionProps
                     <Calendar className="w-3.5 h-3.5" />
                     <span>{wave.period}</span>
                   </div>
+                  {wave.status === 'Penuh' && (
+                    <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-300">Penuh</span>
+                  )}
                 </div>
 
                 {/* Pricing Breakdown */}
@@ -185,13 +160,14 @@ export default function SpmbInfoSection({ onOpenRegister }: SpmbInfoSectionProps
               <div className="pt-4 border-t border-current/15 mt-2">
                 <button
                   onClick={onOpenRegister}
-                  className={`w-full py-2.5 px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  disabled={wave.status === 'Penuh'}
+                  className={`w-full py-2.5 px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed ${
                     wave.isPopular
                       ? 'bg-[#FFBE00] text-[#03357E] hover:bg-[#E6AB00]'
                       : 'bg-[#03357E] text-white hover:bg-[#1F4590]'
                   }`}
                 >
-                  <span>Daftar {wave.name}</span>
+                  <span>{wave.status === 'Penuh' ? 'Kuota Penuh' : `Daftar ${wave.name}`}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>

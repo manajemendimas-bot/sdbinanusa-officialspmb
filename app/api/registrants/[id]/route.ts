@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: 'Body JSON tidak valid.' }, { status: 400 });
   }
   const allowed: Record<string, unknown> = {};
-  for (const k of ['full_name', 'gender', 'birth_date', 'education_level', 'previous_school', 'phone']) {
+  for (const k of ['full_name', 'gender', 'birth_date', 'education_level', 'previous_school', 'phone', 'exam_score', 'registration_number']) {
     if (body[k] !== undefined) allowed[k] = body[k];
   }
   if (Object.keys(allowed).length === 0) return NextResponse.json({ error: 'Tidak ada field untuk diupdate.' }, { status: 400 });
@@ -25,11 +25,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (allowed.full_name !== undefined) allowed.full_name = String(allowed.full_name).trim();
   if (allowed.previous_school !== undefined) allowed.previous_school = String(allowed.previous_school).trim();
   if (allowed.phone !== undefined) allowed.phone = String(allowed.phone).trim();
+  if (allowed.exam_score !== undefined) {
+    const s = allowed.exam_score === null || allowed.exam_score === '' ? null : Number(allowed.exam_score);
+    if (s !== null && (!Number.isFinite(s) || s < 0)) return NextResponse.json({ error: 'Nilai ujian harus angka >= 0.' }, { status: 400 });
+    allowed.exam_score = s;
+  }
+  if (allowed.registration_number !== undefined) {
+    const rn = String(allowed.registration_number).trim();
+    if (!rn) return NextResponse.json({ error: 'Nomor registrasi wajib diisi.' }, { status: 400 });
+    allowed.registration_number = rn;
+  }
 
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase.from('registrants').update(allowed).eq('id', id).select().single();
   if (error) {
     if (error.code === 'PGRST116') return NextResponse.json({ error: 'Pendaftar tidak ditemukan.' }, { status: 404 });
+    if (error.code === '23505') return NextResponse.json({ error: 'Nomor registrasi sudah dipakai pendaftar lain.' }, { status: 409 });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   return NextResponse.json(data);

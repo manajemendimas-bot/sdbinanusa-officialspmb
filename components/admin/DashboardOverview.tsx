@@ -47,6 +47,7 @@ export default function DashboardOverview({ onNavigateTab, onRefresh }: Dashboar
   const scheduledCount = registrants.filter((r) => scheduledRegistrantIds.has(r.id)).length;
   const unscheduledCount = totalRegistrants - scheduledCount;
   const acceptedCount = announcements.filter((a) => a.status === 'Diterima').length;
+  const conditionalCount = announcements.filter((a) => a.status === 'Lulus Bersyarat (Tes Ulang)').length;
   const rejectedCount = announcements.filter((a) => a.status === 'Belum Diterima').length;
   const inProcessCount = announcements.filter((a) => a.status === 'Dalam Proses').length;
   const latestRegistrants = [...registrants].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
@@ -87,7 +88,7 @@ export default function DashboardOverview({ onNavigateTab, onRefresh }: Dashboar
         </div>
         <div onClick={() => onNavigateTab('announcements')} className="p-4 sm:p-5 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs hover:border-[#03357E] transition-colors cursor-pointer">
           <div className="flex items-center justify-between text-[#64748B] mb-2"><span className="text-[11px] font-bold uppercase tracking-wider">Diterima</span><CheckCircle2 className="w-4 h-4 text-emerald-600" /></div>
-          <div className="font-serif text-3xl font-bold text-emerald-700">{acceptedCount}</div><div className="text-[10px] text-[#64748B] mt-1">Status Lulus Seleksi</div>
+          <div className="font-serif text-3xl font-bold text-emerald-700">{acceptedCount}</div><div className="text-[10px] text-[#64748B] mt-1">{conditionalCount > 0 ? `Status Lulus Seleksi • ${conditionalCount} Lulus Bersyarat` : 'Status Lulus Seleksi'}</div>
         </div>
         <div onClick={() => onNavigateTab('announcements')} className="p-4 sm:p-5 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs hover:border-[#03357E] transition-colors cursor-pointer col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between text-[#64748B] mb-2"><span className="text-[11px] font-bold uppercase tracking-wider">Belum Diterima</span><XCircle className="w-4 h-4 text-rose-500" /></div>

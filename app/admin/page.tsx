@@ -8,6 +8,8 @@ import RegistrantManagement from '@/components/admin/RegistrantManagement';
 import ExamSessionManagement from '@/components/admin/ExamSessionManagement';
 import ExamMappingManagement from '@/components/admin/ExamMappingManagement';
 import RoomManagement from '@/components/admin/RoomManagement';
+import ClassManagement from '@/components/admin/ClassManagement';
+import ClassMappingManagement from '@/components/admin/ClassMappingManagement';
 import AnnouncementManagement from '@/components/admin/AnnouncementManagement';
 import SettingsManagement from '@/components/admin/SettingsManagement';
 import { AdminAuth, AdminUser } from '@/lib/auth';
@@ -83,6 +85,8 @@ export default function AdminPage() {
           {currentTab === 'exams' && <ExamSessionManagement onRefreshParent={handleRefresh} />}
           {currentTab === 'mapping' && <ExamMappingManagement onRefreshParent={handleRefresh} />}
           {currentTab === 'rooms' && <RoomManagement onRefreshParent={handleRefresh} />}
+          {currentTab === 'classes' && <ClassManagement onRefreshParent={handleRefresh} />}
+          {currentTab === 'classMapping' && <ClassMappingManagement onRefreshParent={handleRefresh} />}
           {currentTab === 'announcements' && <AnnouncementManagement onRefreshParent={handleRefresh} />}
           {currentTab === 'settings' && <SettingsManagement onRefreshParent={handleRefresh} />}
         </main>

@@ -14,16 +14,19 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldAlert,
-  GraduationCap
+  GraduationCap,
+  School
 } from 'lucide-react';
 import { AdminUser } from '@/lib/auth';
 
-export type AdminTab = 
+export type AdminTab =
   | 'dashboard'
   | 'registrants'
   | 'exams'
   | 'mapping'
   | 'rooms'
+  | 'classes'
+  | 'classMapping'
   | 'announcements'
   | 'settings';
 
@@ -50,6 +53,8 @@ export default function AdminSidebar({
     { id: 'exams', label: 'Jadwal Ujian', icon: Calendar },
     { id: 'mapping', label: 'Pemetaan Peserta', icon: Network },
     { id: 'rooms', label: 'Master Ruangan', icon: DoorOpen },
+    { id: 'classes', label: 'Master Kelas', icon: School },
+    { id: 'classMapping', label: 'Nilai & Alokasi Kelas', icon: GraduationCap },
     { id: 'announcements', label: 'Hasil Pengumuman', icon: Bell },
     { id: 'settings', label: 'Pengaturan Sistem', icon: Settings },
   ];

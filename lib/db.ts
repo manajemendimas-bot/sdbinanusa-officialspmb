@@ -4,10 +4,13 @@ import {
   ExamSession,
   ExamAssignment,
   Announcement,
+  AnnouncementStatus,
   SystemSettings,
   EnrichedExamAssignment,
   PublicScheduleLookupResult,
   PublicAnnouncementLookupResult,
+  SchoolClass,
+  ClassAssignment,
 } from './types';
 
 // Thin async client over Route Handlers. Keeps SchoolDatabase name so consumers need only add `await`.
@@ -303,13 +306,78 @@ export class SchoolDatabase {
 
   static async bulkUpdateAnnouncementStatus(
     registrantIds: string[],
-    status: 'Dalam Proses' | 'Diterima' | 'Belum Diterima',
+    status: AnnouncementStatus,
     isPublished: boolean = true,
   ): Promise<void> {
     await fetchJson<{ ok: boolean }>('/api/announcements', {
       method: 'POST',
       body: JSON.stringify({ registrant_ids: registrantIds, status, is_published: isPublished }),
     });
+  }
+
+  // --- CLASSES ---
+  static async getClasses(): Promise<SchoolClass[]> {
+    return fetchJson<SchoolClass[]>('/api/classes');
+  }
+
+  static async getActiveClasses(): Promise<SchoolClass[]> {
+    const classes = await this.getClasses();
+    return classes.filter((c) => c.is_active);
+  }
+
+  static async createClass(data: { name: string; capacity: number; is_active?: boolean }): Promise<SchoolClass> {
+    return fetchJson<SchoolClass>('/api/classes', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  static async updateClass(id: string, updates: Partial<SchoolClass>): Promise<SchoolClass> {
+    return fetchJson<SchoolClass>(`/api/classes/${id}`, { method: 'PATCH', body: JSON.stringify(updates) });
+  }
+
+  static async deleteClass(id: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      await fetchJson<{ ok: boolean }>(`/api/classes/${id}`, { method: 'DELETE' });
+      return { success: true };
+    } catch (e: unknown) {
+      return { success: false, error: e instanceof Error ? e.message : String(e) };
+    }
+  }
+
+  // --- CLASS ASSIGNMENTS ---
+  static async getClassAssignments(): Promise<ClassAssignment[]> {
+    return fetchJson<ClassAssignment[]>('/api/class-assignments');
+  }
+
+  static async assignToClassManual(registrantId: string, classId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      await fetchJson<ClassAssignment>('/api/class-assignments', {
+        method: 'POST',
+        body: JSON.stringify({ registrant_id: registrantId, class_id: classId }),
+      });
+      return { success: true };
+    } catch (e: unknown) {
+      return { success: false, error: e instanceof Error ? e.message : String(e) };
+    }
+  }
+
+  static async removeClassAssignment(assignmentId: string): Promise<void> {
+    await fetchJson<{ ok: boolean }>(`/api/class-assignments/${assignmentId}`, { method: 'DELETE' });
+  }
+
+  static async autoMapClasses(options?: { classIds?: string[]; onlyUnassigned?: boolean }): Promise<{
+    success: boolean;
+    assignedCount: number;
+    details: { className: string; added: number; total: number }[];
+    error?: string;
+  }> {
+    try {
+      const res = await fetchJson<{ success: boolean; assignedCount: number; details: { className: string; added: number; total: number }[] }>(
+        '/api/class-assignments',
+        { method: 'POST', body: JSON.stringify({ classIds: options?.classIds, onlyUnassigned: options?.onlyUnassigned ?? true }) },
+      );
+      return res;
+    } catch (e: unknown) {
+      return { success: false, assignedCount: 0, details: [], error: e instanceof Error ? e.message : String(e) };
+    }
   }
 
   // --- PUBLIC LOOKUPS ---
