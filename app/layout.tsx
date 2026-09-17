@@ -12,7 +12,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: 'SD Bina Nusa — Official School Website & SPMB 2027/2028',
   description: 'Website Resmi SD Bina Nusa (Yayasan Pendidikan Arrafah Rajeg) dan Sistem SPMB Terintegrasi Tahun Pelajaran 2027/2028.',
-  icons: { icon: '/logo-bina-nusa.jpeg', apple: '/logo-bina-nusa.jpeg' },
+  icons: { icon: '/favicon-logo.png', apple: '/favicon-logo.png' },
   openGraph: {
     title: 'SD Bina Nusa — Official School Website & SPMB 2027/2028',
     description: 'Website Resmi SD Bina Nusa dan Sistem Penerimaan Murid Baru Terpadu Tahun Pelajaran 2027/2028.',
