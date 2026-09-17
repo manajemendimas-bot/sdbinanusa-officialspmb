@@ -38,6 +38,12 @@ export default function FacilitiesSection() {
       spec: 'Akses Satu Pintu (One Gate)',
       highlight: 'Tertib & Aman',
     },
+    {
+      name: 'Laboratorium Komputer',
+      desc: 'Ruang lab komputer ber-AC dengan unit komputer individual untuk pembelajaran literasi digital dan Teknologi Informasi & Komunikasi (TIK) sejak usia dini.',
+      spec: 'Unit Komputer Individual',
+      highlight: 'Modern & Interaktif',
+    },
   ];
 
   return (
